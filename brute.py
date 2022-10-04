@@ -13,6 +13,18 @@ def output(*args):
 #     for i in range(1, numVars+1):
 #         assignment
 
+def verify(i, wff):
+    for clause in wff:
+        clauseTruth = False
+        for num in clause:
+            if num < 0:
+                if not (i >> abs(clause)-1 & 1):
+                    clauseTruth = True
+            if num > 0:
+                if (i >> abs(clause)-1 & 1):
+                    clauseTruth = True
+        return clauseTruth
+
 def readWFF(line, file):
     # c line
     line = line.split()
@@ -30,11 +42,12 @@ def readWFF(line, file):
     wff = []
     while line and line[0] != 'c':
         # UNSURE?: each wff will be stored like [[1, 2, 0], [2, -3, 0]]
+        line.pop()
         wff.append(line)
         line = file.readline().split()
 
-    # for i in range(1<<numVars):
-
+    for i in range(1<<int(numVars)):
+        if not verify(i, wff):
 
     # nextAssignment(numVars)
 
