@@ -51,8 +51,8 @@ def readWFF(line, file):
     wff = []
     i = 0
     totalLiterals = 0
-    while line and line[0][0] != 'c' and i < 15:
-        # each wff will be stored like [[1, 2], [2, -3, 0]]
+    while line and line[0][0] != 'c' and i < 20:
+        # each wff will be stored like [[1, 2], [2, -3]]
         line.pop()
         for num in line:
             totalLiterals += 1
@@ -65,12 +65,10 @@ def readWFF(line, file):
     satisfiable = None
     for i in range(1<<int(numVars)):
         print("i: ", i)
-        if not verify(i, wff):
-            satisfiable = 'U'
+        if verify(i, wff):
+            satisfiable = 'S'
     if not satisfiable:
-        satisfiable = 'S' 
-
-    # get total # of literals
+        satisfiable = 'U' 
 
     # setting 
     if not satisfiableAns:
@@ -91,11 +89,12 @@ def readWFF(line, file):
 def readFile(fileName):
     file = open(fileName, 'r')
     line = file.readline()
-    while line:
+    i = 0
+    while line and i < 10:
         if line[0] == 'c':
             line = readWFF(line, file)
-        break
-
+        i += 1
+    
     file.close()
     f.close()
 
