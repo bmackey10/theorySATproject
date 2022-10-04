@@ -16,17 +16,22 @@ def output(*args):
 
 def verify(i, wff):
     for clause in wff:
+        print(clause)
         clauseTruth = False
         for num in clause:
+            print(num)
+            print((i >> (abs(num)-1)))
             if num < 0:
-                if not ((i >> (abs(clause)-1)) & 1):
+                if not ((i >> (abs(num)-1)) & 1):
                     clauseTruth = True
+                    break
             if num > 0:
-                if ((i >> (abs(clause)-1)) & 1):
+                if ((i >> (abs(num)-1)) & 1):
                     clauseTruth = True
+                    break
         if not clauseTruth:
             return False
-    
+
     return True
 
 def readWFF(line, file):
@@ -43,21 +48,26 @@ def readWFF(line, file):
 
     # reading in wff
     line = file.readline().split(',')
-    print(line)
     wff = []
-    while line and line[0] != 'c':
+    i = 0
+    totalLiterals = 0
+    while line and line[0][0] != 'c' and i < 15:
         # each wff will be stored like [[1, 2], [2, -3, 0]]
         line.pop()
+        for num in line:
+            totalLiterals += 1
+        line = list(map(int, line))
         wff.append(line)
         line = file.readline().split(',')
+        i += 1
 
-    print(wff)
     # call function verify on each assignment with the above wff
-    rightAns = None
+    satisfiable = None
     for i in range(1<<int(numVars)):
+        print("i: ", i)
         if not verify(i, wff):
             satisfiable = 'U'
-    if not rightAns:
+    if not satisfiable:
         satisfiable = 'S' 
 
     # get total # of literals
@@ -71,7 +81,6 @@ def readWFF(line, file):
         else:
             rightAns = -1
 
-    totalLiterals = None
     # output
     execTime, values = None, None # dummy values for now 
     output(problemNum, numVars, numClauses, maxLiterals, totalLiterals, satisfiable, rightAns, execTime, values)
