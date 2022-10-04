@@ -1,12 +1,13 @@
 from re import L
 import sys
 import csv
+import time
 
 f = open('./CSV/brute.csv', 'w')
 writer = csv.writer(f)
 
-def output(*args):
-    args = list(args)
+def output(args):
+    # args = list(args)
     writer.writerow(args)
 
 # def nextAssignment(numVars):
@@ -16,11 +17,8 @@ def output(*args):
 
 def verify(i, wff):
     for clause in wff:
-        print(clause)
         clauseTruth = False
         for num in clause:
-            print(num)
-            print((i >> (abs(num)-1)))
             if num < 0:
                 if not ((i >> (abs(num)-1)) & 1):
                     clauseTruth = True
@@ -51,8 +49,8 @@ def readWFF(line, file):
     wff = []
     i = 0
     totalLiterals = 0
-    while line and line[0][0] != 'c' and i < 15:
-        # each wff will be stored like [[1, 2], [2, -3, 0]]
+    while line and line[0][0] != 'c' and i < 20:
+        # each wff will be stored like [[1, 2], [2, -3]]
         line.pop()
         for num in line:
             totalLiterals += 1
@@ -62,15 +60,15 @@ def readWFF(line, file):
         i += 1
 
     # call function verify on each assignment with the above wff
-    satisfiable = None
+    satisfiable, values = None, None
+    startTime = time.time() * (10**6)
     for i in range(1<<int(numVars)):
-        print("i: ", i)
-        if not verify(i, wff):
-            satisfiable = 'U'
+        if verify(i, wff):
+            satisfiable = 'S'
+            values = i
     if not satisfiable:
-        satisfiable = 'S' 
-
-    # get total # of literals
+        satisfiable = 'U' 
+    endTime = time.time() * (10**6)
 
     # setting 
     if not satisfiableAns:
@@ -81,9 +79,24 @@ def readWFF(line, file):
         else:
             rightAns = -1
 
+    if values:
+        values = str(bin(values))[::-1]
+        print(values)
+        values = [x for x in values][:-2]
+        ','.join(values)
+
+    if values and len(values) < int(numVars):
+        numZeros = int(numVars) - len(values)
+        for i in range(numZeros):
+            values.insert(0, 0)
+
+    print(values)
     # output
-    execTime, values = None, None # dummy values for now 
-    output(problemNum, numVars, numClauses, maxLiterals, totalLiterals, satisfiable, rightAns, execTime, values)
+    execTime = endTime-startTime # dummy values for now 
+    outputarr = [problemNum, numVars, numClauses, maxLiterals, totalLiterals, satisfiable, rightAns, execTime]
+    if values:
+     outputarr.extend(values)
+    output([x for x in outputarr])
     
     # returning the next 'c' line back to readFile
     return ' '.join(line)
@@ -91,11 +104,12 @@ def readWFF(line, file):
 def readFile(fileName):
     file = open(fileName, 'r')
     line = file.readline()
-    while line:
+    i = 0
+    while line and i < 20:
         if line[0] == 'c':
             line = readWFF(line, file)
-        break
-
+        i += 1
+    
     file.close()
     f.close()
 
