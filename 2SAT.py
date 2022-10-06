@@ -4,13 +4,21 @@ import csv
 f = open('./CSV/2SAT.csv', 'w')
 writer = csv.writer(f)
 
-def solver(wff, values, currValue):
+def solver(wff, numVars, values, currValue, assignment):
 
-    nextValue = None
     print(currValue)
 
+    if currValue not in values:
+        values[currValue] = assignment
+    else:
+        return values
+
+    print("OUTSIDE BEFORE: ",currValue)
+    print("OUTSIDE BEFORE: ", values)
+
     for clause in wff:
-        print(values)
+        print("INSIDE BEFORE: ", currValue, clause)
+        print("INSIDE BEFORE: ", values, clause)
         indexOther = -1
         if values[currValue] == 0 and currValue in clause:
             indexOther = int(not(clause.index(currValue)))
@@ -20,21 +28,64 @@ def solver(wff, values, currValue):
         if indexOther != -1:
             if clause[indexOther] < 0:
                 if -clause[indexOther] in values and values[-clause[indexOther]] != 0:
-                    return "error"
+                    values = {}
                 else:
                     values[-clause[indexOther]] = 0
-                    if not nextValue: -clause[indexOther]
             elif clause[indexOther] > 0:
                 if clause[indexOther] in values and values[clause[indexOther]] != 1:
-                    return "error"
+                    values = {}
                 else:
                     values[clause[indexOther]] = 1
-                    if not nextValue: clause[indexOther]
 
-    if nextValue:
-        values = solver(wff, values, nextValue)
+        print("INSIDE AFTER: ", currValue, clause)
+        print("INSIDE AFTER: ", values, clause)
+        if values == {}:
+            values = solver(wff, numVars, values, currValue, int(not(assignment)))
+            if values == {}:
+                return {}
+            else:
+                break
 
-    return values
+
+    print("OUTSIDE AFTER: ", currValue)
+    print("OUTSIDE AFTER: ", values)
+
+    while(currValue < int(numVars)):
+        values = solver(wff, numVars, values, currValue, 0)
+        currValue += 1
+
+    if len(values) > 0:
+        print("checking")
+        input = concatBools(values, numVars)
+        return verify(input, wff)
+    else:
+        return values
+
+def concatBools(values, numVars):
+
+    input = []
+
+    for i in range(int(numVars)):
+        input.append(values[i + 1])
+
+    return int("".join(input))
+
+def verify(i, wff):
+    for clause in wff:
+        clauseTruth = False
+        for num in clause:
+            if num < 0:
+                if not ((i >> (abs(num)-1)) & 1):
+                    clauseTruth = True
+                    break
+            if num > 0:
+                if ((i >> (abs(num)-1)) & 1):
+                    clauseTruth = True
+                    break
+        if not clauseTruth:
+            return False
+
+    return True
 
 def readWFF(line, file):
     # c line
@@ -59,30 +110,10 @@ def readWFF(line, file):
         wff.append(line)
         line = file.readline().split(",")
 
-    variable = 1
-    assignment = 0
-    oppositeChecked = False
-    i = 0
-    values = {variable : assignment}
+    values = {}
 
-    while len(values) < int(numVars) and i < 10:
-
-        values = solver(wff, values, variable)
-
-        if values == "error" and oppositeChecked == False:
-            oppositeChecked = True
-            values = {variable: int(not(assignment))}
-        if len(values) < int(numVars) and values != "error":
-            oppositeChecked = False
-            variable += 1
-            values[variable] = 0
-        if values == "error" and oppositeChecked == True:
-            return "unsatisfiable"
-
-        print(values)
-
-        i += 1
-
+    values = solver(wff, numVars, values, 1, 0)
+    print(values)
 
     return ' '.join(line)
 
@@ -92,10 +123,9 @@ def readFile(fileName):
 
     i = 0
 
-    while line and i < 2:
+    while line and i < 1:
         if line.split()[0] == "c":
             line = readWFF(line, file)
-            print(line)
         i += 1
 
     file.close()
