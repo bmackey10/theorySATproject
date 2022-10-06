@@ -6,9 +6,11 @@ writer = csv.writer(f)
 
 def solver(wff, values, currValue):
 
-    queue = []
+    nextValue = None
+    print(currValue)
 
     for clause in wff:
+        print(values)
         indexOther = -1
         if values[currValue] == 0 and currValue in clause:
             indexOther = int(not(clause.index(currValue)))
@@ -21,19 +23,16 @@ def solver(wff, values, currValue):
                     return "error"
                 else:
                     values[-clause[indexOther]] = 0
-                    queue.append(-clause[indexOther])
+                    if not nextValue: -clause[indexOther]
             elif clause[indexOther] > 0:
                 if clause[indexOther] in values and values[clause[indexOther]] != 1:
                     return "error"
                 else:
                     values[clause[indexOther]] = 1
-                    queue.append(clause[indexOther])
+                    if not nextValue: clause[indexOther]
 
-
-    for item in queue:
-        values = solver(wff, values, item)
-        if values == "error":
-            return "error"
+    if nextValue:
+        values = solver(wff, values, nextValue)
 
     return values
 
@@ -66,21 +65,21 @@ def readWFF(line, file):
     i = 0
     values = {variable : assignment}
 
-    while len(values) < int(numVars) and i < 4:
+    while len(values) < int(numVars) and i < 10:
 
         values = solver(wff, values, variable)
 
         if values == "error" and oppositeChecked == False:
             oppositeChecked = True
             values = {variable: int(not(assignment))}
-        elif len(values) < int(numVars):
+        if len(values) < int(numVars) and values != "error":
             oppositeChecked = False
-            for i in range(int(numVars)):
-                if (i + 1) not in values:
-                    break
-            variable = i + 1
+            variable += 1
             values[variable] = 0
-            print(values)
+        if values == "error" and oppositeChecked == True:
+            return "unsatisfiable"
+
+        print(values)
 
         i += 1
 
@@ -93,9 +92,10 @@ def readFile(fileName):
 
     i = 0
 
-    while line and i < 1:
+    while line and i < 2:
         if line.split()[0] == "c":
             line = readWFF(line, file)
+            print(line)
         i += 1
 
     file.close()
