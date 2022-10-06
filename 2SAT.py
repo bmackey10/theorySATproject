@@ -4,8 +4,38 @@ import csv
 f = open('./CSV/2SAT.csv', 'w')
 writer = csv.writer(f)
 
-def solver(wff, values):
+def solver(wff, values, currValue):
 
+    queue = []
+
+    for clause in wff:
+        indexOther = -1
+        if values[currValue] == 0 and currValue in clause:
+            indexOther = int(not(clause.index(currValue)))
+        elif values[currValue] == 1 and -currValue in clause:
+            indexOther = int(not(clause.index(-currValue)))
+
+        if indexOther != -1:
+            if clause[indexOther] < 0:
+                if -clause[indexOther] in values and values[-clause[indexOther]] != 0:
+                    return "error"
+                else:
+                    values[-clause[indexOther]] = 0
+                    queue.append(-clause[indexOther])
+            elif clause[indexOther] > 0:
+                if clause[indexOther] in values and values[clause[indexOther]] != 1:
+                    return "error"
+                else:
+                    values[clause[indexOther]] = 1
+                    queue.append(clause[indexOther])
+
+
+    for item in queue:
+        values = solver(wff, values, item)
+        if values == "error":
+            return "error"
+
+    return values
 
 def readWFF(line, file):
     # c line
@@ -30,17 +60,30 @@ def readWFF(line, file):
         wff.append(line)
         line = file.readline().split(",")
 
-    # call function verify on each assignment with the above wff
-    satisfiable, values = None, None
-    startTime = time.time() * (10**6)
+    variable = 1
+    assignment = 0
+    oppositeChecked = False
+    i = 0
+    values = {variable : assignment}
 
-    values = {1:0}
-    satisfiable = False
+    while len(values) < int(numVars) and i < 4:
 
-    while !satisfiable:
-        values = solver(wff, values)
-        if len(values.keys()) == numVars:
-            satisfiable = True
+        values = solver(wff, values, variable)
+
+        if values == "error" and oppositeChecked == False:
+            oppositeChecked = True
+            values = {variable: int(not(assignment))}
+        elif len(values) < int(numVars):
+            oppositeChecked = False
+            for i in range(int(numVars)):
+                if (i + 1) not in values:
+                    break
+            variable = i + 1
+            values[variable] = 0
+            print(values)
+
+        i += 1
+
 
     return ' '.join(line)
 
