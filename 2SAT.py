@@ -6,69 +6,106 @@ writer = csv.writer(f)
 
 def solver(wff, numVars, values, currValue, assignment):
 
-    print(currValue)
+    tempValues = values.copy()
 
-    if currValue not in values:
-        values[currValue] = assignment
+    if currValue not in tempValues:
+        tempValues[currValue] = assignment
     else:
-        return values
+        return tempValues
 
-    print("OUTSIDE BEFORE: ",currValue)
-    print("OUTSIDE BEFORE: ", values)
+    print(tempValues)
 
     for clause in wff:
-        print("INSIDE BEFORE: ", currValue, clause)
-        print("INSIDE BEFORE: ", values, clause)
         indexOther = -1
-        if values[currValue] == 0 and currValue in clause:
+        if tempValues[currValue] == 0 and currValue in clause:
             indexOther = int(not(clause.index(currValue)))
-        elif values[currValue] == 1 and -currValue in clause:
+        elif tempValues[currValue] == 1 and -currValue in clause:
             indexOther = int(not(clause.index(-currValue)))
 
         if indexOther != -1:
             if clause[indexOther] < 0:
-                if -clause[indexOther] in values and values[-clause[indexOther]] != 0:
-                    values = {}
+                if -clause[indexOther] in tempValues and tempValues[-clause[indexOther]] != 0:
+                    return {}
                 else:
-                    values[-clause[indexOther]] = 0
+                    tempValues[-clause[indexOther]] = 0
             elif clause[indexOther] > 0:
-                if clause[indexOther] in values and values[clause[indexOther]] != 1:
-                    values = {}
+                if clause[indexOther] in tempValues and tempValues[clause[indexOther]] != 1:
+                    return {}
                 else:
-                    values[clause[indexOther]] = 1
+                    tempValues[clause[indexOther]] = 1
 
-        print("INSIDE AFTER: ", currValue, clause)
-        print("INSIDE AFTER: ", values, clause)
-        if values == {}:
-            values = solver(wff, numVars, values, currValue, int(not(assignment)))
-            if values == {}:
-                return {}
+    return tempValues
+
+
+def helper(wff, numVars):
+
+    values = {}
+    currStackDict = {1:0}
+    currStack = [1]
+    currValue = 1
+
+    while (currStack):
+        print("Begin: ", currValue)
+        print("Begin: ", values)
+        print("--------------", currStackDict)
+        print("--------------", currStack)
+        newValues = {}
+
+        if currStackDict[currValue] == 0:
+            newValues = solver(wff, numVars, values, currValue, 0)
+            currStackDict[currValue] = 1
+
+        print("Middle: ", currValue)
+        print("Middle: ", newValues)
+        print("Middle: ", values)
+        print("--------------", currStackDict)
+        print("--------------", currStack)
+
+        if newValues == {} and currStackDict[currValue] == 1:
+            print("try two")
+            newValues = solver(wff, numVars, values, currValue, 1)
+            currStackDict[currValue] = 2
+
+        print("Middle 2: ", currValue)
+        print("Middle 2: ", newValues)
+        print("Middle 2: ", values)
+        print("--------------", currStackDict)
+        print("--------------", currStack)
+
+        if newValues == {}:
+            discard = currStack.pop()
+            del currStackDict[discard]
+            if len(currStack) > 0:
+                currValue = currStack[-1]
             else:
-                break
+                return False
+        else:
+            values = newValues
+            if currValue != int(numVars):
+                currStackDict[currValue + 1] = 0
+                currStack.append(currValue + 1)
+                currValue = currValue + 1
+            else:
+                input = concatBools(values, numVars)
+                return verify(input, wff)
+
+        print("End: ", currValue)
+        print("End: ", values)
+        print("--------------", currStackDict)
+        print("--------------", currStack)
 
 
-    print("OUTSIDE AFTER: ", currValue)
-    print("OUTSIDE AFTER: ", values)
+    return False
 
-    while(currValue < int(numVars)):
-        values = solver(wff, numVars, values, currValue, 0)
-        currValue += 1
-
-    if len(values) > 0:
-        print("checking")
-        input = concatBools(values, numVars)
-        return verify(input, wff)
-    else:
-        return values
 
 def concatBools(values, numVars):
 
     input = []
 
     for i in range(int(numVars)):
-        input.append(values[i + 1])
+        input.append(f"{values[int(numVars) - i]}")
 
-    return int("".join(input))
+    return int("".join(input),2)
 
 def verify(i, wff):
     for clause in wff:
@@ -110,10 +147,8 @@ def readWFF(line, file):
         wff.append(line)
         line = file.readline().split(",")
 
-    values = {}
-
-    values = solver(wff, numVars, values, 1, 0)
-    print(values)
+    values = helper(wff, numVars)
+    print("\n",values, "\n")
 
     return ' '.join(line)
 
@@ -123,7 +158,7 @@ def readFile(fileName):
 
     i = 0
 
-    while line and i < 1:
+    while line and i < 10:
         if line.split()[0] == "c":
             line = readWFF(line, file)
         i += 1
