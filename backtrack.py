@@ -16,37 +16,42 @@ def output(*args):
 
 def verify(i, wff, nextVal):
     for clause in wff:
-        clauseTruth = False
+        #print(clause, nextVal)
+        clauseTruth = "false"
         for num in clause:
-            if abs(nextVal) < num:
-                clauseTruth = True
-                break
-            if num < 0:
-                if not ((i >> (abs(num) - 1)) & 1):
-                    clauseTruth = True
-                    break
-            if num > 0:
-                if ((i >> (abs(num) - 1)) & 1):
-                    clauseTruth = True
-                    break
-        if not clauseTruth:
-            return False
-    return True
+            if nextVal > abs(num):
+                if num < 0:
+                    if not ((i >> (abs(num) - 1)) & 1):
+                        clauseTruth = "true"
+                        break
+                if num > 0:
+                    if ((i >> (abs(num) - 1)) & 1):
+                        clauseTruth = "true"
+                        break
+            else:
+                clauseTruth = "unknown"
+        #print(f"{clauseTruth}\n")
+        if clauseTruth != "true":
+            return clauseTruth
+    return "true"
 
-def tryAssignments(assignment, nextVal, numVars, wff):
+def tryAssignments(assignment, nextVal, wff):
     global count
     count += 1
     #if count == 1 or count == 10 or not count % 100:
     #    print(f"tryAssignments({assignment}, {nextVal}, {numVars}, {wff}) #{count}")
-    if not verify(assignment, wff, nextVal):
-        return False
-    if nextVal > numVars:
-        return verify(assignment, wff, nextVal)
-    if tryAssignments(assignment, nextVal + 1, numVars, wff):
-        return True
-    if tryAssignments(assignment | 1 << (nextVal - 1), nextVal + 1, numVars, wff):
-        return True
-    return False
+    if verify(assignment, wff, nextVal) == "false":
+        return [None, None]
+    if verify(assignment, wff, nextVal) == "true":
+        return [assignment, nextVal]
+    answer, val_len = tryAssignments(assignment, nextVal + 1, wff)
+    if answer:
+        return [answer, val_len]
+    answer, val_len = tryAssignments(assignment | 1 << (nextVal - 1), nextVal + 1, wff)
+    if answer:
+        return [answer, val_len]
+
+    return [None, None]
 
 
 def readWFF(line, file):
@@ -75,8 +80,10 @@ def readWFF(line, file):
         line = file.readline().split(",")
 
     # call function verify on each assignment with the above wff
+    #print(wff)
     startTime = time.time() * (10**6)
-    if tryAssignments(0, 1, int(numVars), wff):
+    values, vals_used = tryAssignments(0, 1, wff)
+    if values:
         satisfiable = 'S'
     else:
         satisfiable = 'U'
@@ -93,10 +100,15 @@ def readWFF(line, file):
         else:
             rightAns = -1
 
-    values = 0
+    if values:
+        values = str(bin(values))[::-1]
+        values = [x for x in values][:-2]
+        for i in range(vals_used, len(values)):
+            values[i] = -1
+        ','.join(values)
     # output
     execTime = endTime - startTime
-    outputarr = [problemNum, maxLiterals, totalLiterals, satisfiable, rightAns, execTime, values]
+    outputarr = [problemNum, maxLiterals, totalLiterals, satisfiable, rightAns, execTime]
     if values:
         outputarr.extend(values)
     output([x for x in outputarr])
@@ -108,7 +120,7 @@ def readFile(fileName):
     file = open(fileName, 'r')
     line = file.readline()
     i = 0
-    while line and i < 2:
+    while line and i < 40:
         if line[0] == 'c':
             line = readWFF(line, file)
         i += 1
