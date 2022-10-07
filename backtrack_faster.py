@@ -3,8 +3,11 @@
 import sys
 import csv
 import time
+import datetime
 
-f = open('./CSV/backtrack_change.csv', 'w')
+count = 0
+
+f = open('./CSV/backtrack_faster.csv', 'w')
 writer = csv.writer(f)
 
 def output(*args):
@@ -13,7 +16,6 @@ def output(*args):
 
 
 def verify(i, wff, nextVal):
-    print(f"Checking {i}, {nextVal}")
     for clause in wff:
         #print(clause, nextVal)
         clauseTruth = "false"
@@ -31,32 +33,26 @@ def verify(i, wff, nextVal):
                 clauseTruth = "unknown"
         #print(f"{clauseTruth}\n")
         if clauseTruth != "true":
-            print(clauseTruth)
             return clauseTruth
-    print(clauseTruth)
     return "true"
 
-def tryAssignments(assignment, nextVal, wff, check_other):
+def tryAssignments(assignment, nextVal, wff):
+    global count
+    count += 1
     #if count == 1 or count == 10 or not count % 100:
     #    print(f"tryAssignments({assignment}, {nextVal}, {numVars}, {wff}) #{count}")
-    verified = verify(assignment, wff, nextVal)
-    if verified == "true":
+    if verify(assignment, wff, nextVal) == "false":
+        return [None, None]
+    if verify(assignment, wff, nextVal) == "true":
         return [assignment, nextVal]
-    elif verified == "unknown":
-        #print(f"Trying assignment {assignment} with nextVal {nextVal}")
-        answer, val_len = tryAssignments(assignment, nextVal + 1, wff, True)
-        if answer:
-            return [answer, val_len]
-    if check_other:
-        #print(f"Trying assignment {assignment | 1 << (nextVal - 1)} with nextVal {nextVal}")
-        answer, val_len = tryAssignments(assignment | 1 << (nextVal - 1), nextVal, wff, False)
-        #return [None, None]
-        if answer:
-            return [answer, val_len]
+    answer, val_len = tryAssignments(assignment, nextVal + 1, wff)
+    if answer:
+        return [answer, val_len]
+    answer, val_len = tryAssignments(assignment | 1 << (nextVal - 1), nextVal + 1, wff)
+    if answer:
+        return [answer, val_len]
+
     return [None, None]
-    #answer, val_len = tryAssignments(assignment | 1 << (nextVal - 1), nextVal + 1, wff)
-    #if answer:
-    #    return [answer, val_len]
 
 
 def readWFF(line, file):
@@ -87,7 +83,7 @@ def readWFF(line, file):
     # call function verify on each assignment with the above wff
     #print(wff)
     startTime = time.time() * (10**6)
-    values, vals_used = tryAssignments(0, 1, wff, True)
+    values, vals_used = tryAssignments(0, 1, wff)
     if values:
         satisfiable = 'S'
     else:
@@ -125,11 +121,11 @@ def readFile(fileName):
     file = open(fileName, 'r')
     line = file.readline()
     i = 0
-    while line and i < 1:
+    while line and i < 40:
         if line[0] == 'c':
             line = readWFF(line, file)
         i += 1
-        #print("---------------------\n")
+        print(i, datetime.datetime.now())
 
     file.close()
     f.close()
