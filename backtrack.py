@@ -7,7 +7,7 @@ import datetime
 
 count = 0
 
-f = open('./CSV/backtrack_heuristic.csv', 'w')
+f = open('./CSV/backtrack_heuristic_kSATu.csv', 'w')
 writer = csv.writer(f)
 
 def output(args):
@@ -105,7 +105,7 @@ def readWFF(line, file):
         satisfiable = 'U'
     endTime = time.time() * (10**6)
 
-    if not satisfiableAns:
+    if satisfiableAns == "?":
         rightAns = 0
     else:
         if satisfiableAns == satisfiable:
