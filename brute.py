@@ -39,7 +39,7 @@ def readWFF(line, file):
 
     if len(line) == 4:
         satisfiableAns = line[3]
-    
+
     # p line
     line = file.readline().split()
     numVars, numClauses = line[2], line[3]
@@ -67,10 +67,10 @@ def readWFF(line, file):
             satisfiable = 'S'
             values = i
     if not satisfiable:
-        satisfiable = 'U' 
+        satisfiable = 'U'
     endTime = time.time() * (10**6)
 
-    # setting 
+    # setting
     if not satisfiableAns:
         rightAns = 0
     else:
@@ -92,12 +92,12 @@ def readWFF(line, file):
 
     print(values)
     # output
-    execTime = endTime-startTime # dummy values for now 
+    execTime = endTime-startTime # dummy values for now
     outputarr = [problemNum, numVars, numClauses, maxLiterals, totalLiterals, satisfiable, rightAns, execTime]
     if values:
      outputarr.extend(values)
     output([x for x in outputarr])
-    
+
     # returning the next 'c' line back to readFile
     return ' '.join(line)
 
@@ -105,11 +105,11 @@ def readFile(fileName):
     file = open(fileName, 'r')
     line = file.readline()
     i = 0
-    while line and i < 20:
+    while line and i < 1:
         if line[0] == 'c':
             line = readWFF(line, file)
         i += 1
-    
+
     file.close()
     f.close()
 
