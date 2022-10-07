@@ -47,9 +47,9 @@ def readWFF(line, file):
     # reading in wff
     line = file.readline().split(',')
     wff = []
-    i = 0
     totalLiterals = 0
-    while line and line[0][0] != 'c' and i < 20:
+
+    while line != [''] and line[0][0] != 'c':
         # each wff will be stored like [[1, 2], [2, -3]]
         line.pop()
         for num in line:
@@ -57,7 +57,6 @@ def readWFF(line, file):
         line = list(map(int, line))
         wff.append(line)
         line = file.readline().split(',')
-        i += 1
 
     # call function verify on each assignment with the above wff
     satisfiable, values = None, None
@@ -81,16 +80,14 @@ def readWFF(line, file):
 
     if values:
         values = str(bin(values))[::-1]
-        print(values)
         values = [x for x in values][:-2]
         ','.join(values)
 
     if values and len(values) < int(numVars):
-        numZeros = int(numVars) - len(values)
-        for i in range(numZeros):
-            values.insert(0, 0)
+        numZeros = (int(numVars) - len(values)) * [0]
+        values = numZeros + values
 
-    print(values)
+    print(problemNum)
     # output
     execTime = endTime-startTime # dummy values for now
     outputarr = [problemNum, numVars, numClauses, maxLiterals, totalLiterals, satisfiable, rightAns, execTime]
@@ -104,12 +101,12 @@ def readWFF(line, file):
 def readFile(fileName):
     file = open(fileName, 'r')
     line = file.readline()
-    i = 0
-    while line and i < 1:
-        if line[0] == 'c':
-            line = readWFF(line, file)
-        i += 1
 
+    while line:
+        if line.split()[0] == 'c':
+            line = readWFF(line, file)
+            
+            
     file.close()
     f.close()
 
