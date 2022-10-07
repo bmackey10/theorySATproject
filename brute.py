@@ -101,12 +101,21 @@ def readWFF(line, file):
 def readFile(fileName):
     file = open(fileName, 'r')
     line = file.readline()
+<<<<<<< HEAD
 
     while line:
         if line.split()[0] == 'c':
             line = readWFF(line, file)
 
             
+=======
+    i = 0
+    while line and i < 1:
+        if line[0] == 'c':
+            line = readWFF(line, file)
+        i += 1
+
+>>>>>>> master
     file.close()
     f.close()
 
