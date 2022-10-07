@@ -103,13 +103,10 @@ def readFile(fileName):
     line = file.readline()
 
     while line:
-        if line.split()[0] == 'c' and line.split()[1] == "400":
+        if line.split()[0] == 'c':
             line = readWFF(line, file)
-            break
-        else:
-            line = file.readline()
 
-            # line = readWFF(line, file)
+            
     file.close()
     f.close()
 
